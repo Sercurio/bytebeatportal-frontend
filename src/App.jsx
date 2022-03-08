@@ -158,14 +158,14 @@ const onChangeAddFormulaHandler = (e)=>{
           </button>
         )}
         <div className="displayFormula" style={{display:'flex', justifyContent:'center'}}>
-        {loading ? <div>Loading</div> : bbFormulas.map((formula, index) => {
+        {loading ? <div>Loading</div> : (<div style={{display:"flex", flexWrap:"wrap"}}>{bbFormulas.map((formula, index) => {
           return (
             <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
               <div>Address: {formula.sender}</div>
               <div>Time: {formula.timestamp.toString()}</div>
               <div>Formula: {formula.formula}</div>
             </div>)
-        })
+        })}</div>)
       }
           </div>
         
