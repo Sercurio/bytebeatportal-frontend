@@ -8,9 +8,10 @@ import  abi from "./utils/ByteBeatPortal.json"
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
   const [loading, setLoading] = useState(false)
-  const [bbFormula, setBbFormula] = useState("");
+  const [inputAddFormula, setInputAddFormula] = useState("");
+  const [bbFormulas, setBbFormulas] = useState([]);
 
-  const contractAddress = "0x146c4B82497b9ae6ce4FA151F57e1cd8B9dCDa5C";
+  const contractAddress = "0x256bE7E2A61e60BABB08c97A688017230F406EC6";
 
   const contractABI =  abi.abi;
 
@@ -60,7 +61,7 @@ const App = () => {
     }
   }
 
-  const formula = async () => {
+  const getFormulas = async () => {
     try {
       const { ethereum } = window;
 
@@ -69,29 +70,58 @@ const App = () => {
         const signer = provider.getSigner();
         const bbPortalContract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        let formula = await bbPortalContract.getFormula();
-        setBbFormula(formula);
-        console.log("Retrieved current formula...", formula);
+        let formulas = await bbPortalContract.getFormulas();
+        let formulasCleaned = [];
+        formulas.forEach(formula => {
+          formulasCleaned.push({
+            sender: formula.sender,
+            timestamp: new Date(formula.timestamp * 1000),
+            formula: formula.formula
+          });
+        });
 
-        /*
-        * Execute the actual wave from your smart contract
-        */
-        const bbTxn = await bbPortalContract.updateFormula("t*t");
-        console.log("Mining...", bbTxn.hash);
-        
-        setLoading(true)
-        await bbTxn.wait();
-        setLoading(false)
-        console.log("Mined -- ", bbTxn.hash);
-
-        formula = await bbPortalContract.getFormula();
-        console.log("Retrieved current formula: %s", formula);
+        setBbFormulas(formulasCleaned);
+        console.log("Retrieved formulas...", formulas);
       } else {
         console.log("Ethereum object doesn't exist!");
       }
     } catch (error) {
       console.log(error);
     }
+}
+
+const addFormula=async (e)=>{
+e.preventDefault();
+try {
+  const { ethereum } = window;
+
+  if (ethereum) {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    const bbPortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    const bbTxn = await bbPortalContract.addFormula(inputAddFormula);
+    console.log("Mining...", bbTxn.hash);
+    
+    setLoading(true)
+    await bbTxn.wait();
+    setLoading(false)
+    console.log("Mined -- ", bbTxn.hash);
+
+    setInputAddFormula("");
+
+    getFormulas();
+  } else {
+    console.log("Ethereum object doesn't exist!");
+  }
+} catch (error) {
+  console.log(error);
+}
+
+}
+
+const onChangeAddFormulaHandler = (e)=>{
+  setInputAddFormula(e.target.value);
 }
 
 
@@ -107,13 +137,18 @@ const App = () => {
         </div>
 
         <div className="bio">
-          I am farza and I worked on self-driving cars so that's pretty cool right? Connect your Ethereum wallet and wave at me!
+          Website for adding bytebeat formulas interacting with ethereum blockchain
         </div>
 
-        <button className="button" onClick={formula}>
-          GetCurrentFormula
+        <button className="button" onClick={getFormulas}>
+          getFormulas
         </button>
-
+        <form style={{alignSelf:"center", marginTop:"8px"}} onSubmit={addFormula}>
+        <input onChange={onChangeAddFormulaHandler} type="text" value={inputAddFormula}></input>
+        <button className="button" type="submit">
+          addFormula
+        </button>
+        </form>
         {/*
         * If there is no currentAccount render this button
         */}
@@ -123,7 +158,15 @@ const App = () => {
           </button>
         )}
         <div className="displayFormula" style={{display:'flex', justifyContent:'center'}}>
-        {loading ? <div>Loading</div> : bbFormula}
+        {loading ? <div>Loading</div> : bbFormulas.map((formula, index) => {
+          return (
+            <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
+              <div>Address: {formula.sender}</div>
+              <div>Time: {formula.timestamp.toString()}</div>
+              <div>Formula: {formula.formula}</div>
+            </div>)
+        })
+      }
           </div>
         
       </div>
