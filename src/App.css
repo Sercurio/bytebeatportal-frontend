@@ -24,11 +24,15 @@
   margin-top: 16px;
 }
 
-.waveButton {
+.button {
   cursor: pointer;
   margin-top: 16px;
   padding: 8px;
   border: 0;
   border-radius: 5px;
   
+}
+
+.displayFormula{
+  margin-top: 16px;
 }
